@@ -1,0 +1,8 @@
+module.exports = {
+  plugins: ["stylelint-no-unsupported-browser-features"],
+  extends: ["stylelint-config-recommended-scss", "stylelint-prettier/recommended"],
+  rules: {
+    "plugin/no-unsupported-browser-features": true,
+    "rule-empty-line-before": ["always", { "except": ["first-nested"], "ignore": ["after-comment"] }]
+  }
+};
