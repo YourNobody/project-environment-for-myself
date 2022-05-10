@@ -1,13 +1,14 @@
 const path = require('path');
+const fs = require('fs');
 const minifyCssClassNames = require("mini-css-class-name/css-loader");
-const {webpackFilename, resolveExtensions, low, isDevMode, isProdMode} = require('../common.helper');
+const {webpackFilename, resolveExtensions, isDevMode, isProdMode} = require('../common.helper');
 const {TypescriptConfigPathsPlugin, WatchIgnorePlugin, DefinePlugin, CaseSensitivePathsPlugin,
   HtmlWebpackPlugin, CleanWebpackPlugin, CopyWebpackPlugin, ProgressPlugin, MiniCssExtractPlugin
 } = require('./webpack.plugins');
 
-const srcDirPath = path.resolve(__dirname, './src/');
-const distDirPath = path.resolve(__dirname, './dist/');
-const assetsDirPath = path.resolve(__dirname, './public');
+const srcDirPath = path.resolve(__dirname, '../../src/');
+const distDirPath = path.resolve(__dirname, '../../dist/');
+const assetsDirPath = path.resolve(__dirname, '../../public');
 
 function defineGetLocalIdent() {
   if (isProdMode()) return minifyCssClassNames({
@@ -29,7 +30,6 @@ function defineGetLocalIdent() {
 const stats = {
   children: false,
   modules: false,
-  error: true,
   errorDetails: true
 };
 
@@ -38,7 +38,7 @@ const output = {
   path: distDirPath,
   filename: webpackFilename('js'),
   chunkFilename: webpackFilename('js'),
-  publicPath: '/'
+  publicPath: isProdMode() ? './' : '/'
 };
 
 /** @type {import('webpack').ResolveOptionsWebpackOptions} */
@@ -46,7 +46,7 @@ const resolve = {
   extensions: resolveExtensions('js', 'jsx', 'ts', 'tsx'),
   plugins: [
     new TypescriptConfigPathsPlugin({
-      configFile: './tsconfig.json'
+      configFile: path.resolve(__dirname, '../tsconfig.json')
     })
   ]
 };
@@ -56,14 +56,13 @@ const plugins = [
   new WatchIgnorePlugin({ paths: [/\.d\.ts$/] }),
   new DefinePlugin({
     'process.env': {
-      NODE_ENV: low(process.env.NODE_ENV),
-      BASE_URL: '/',
+      BASE_URL: isProdMode() ? '"./"' : '"/"',
     },
     'global.IS_DEV': JSON.stringify(isDevMode())
   }),
   new CaseSensitivePathsPlugin(),
   new HtmlWebpackPlugin({
-    template: path.resolve(srcDirPath, "index.html"),
+    template: path.resolve(srcDirPath, 'index.html'),
     minify: isProdMode() && {
       removeComments: true,
       collapseWhitespace: true,
@@ -110,71 +109,86 @@ const optimization = {
 };
 
 /** @type {import('webpack').RuleSetRule[]} */
-const rules = [{
-  test: /\.(ts|tsx)$/,
-  exclude: /node_modules/,
-  use: [
-    "babel-loader",
-    {
-      loader: "ts-loader",
-      options: {
-        transpileOnly: true,
+const rules = [
+  {
+    test: /\.(ts|tsx)$/,
+    exclude: /node_modules/,
+    use: [
+      'babel-loader',
+      {
+        loader: 'ts-loader',
+        options: {
+          transpileOnly: true,
+        },
       },
-    },
-  ]}, {
-  test: /\.(js|jsx)$/,
-  exclude: /node_modules/,
-  use: ['babel-loader'],
-  }, {
-  test: /\.(png|jpe?g|gif|webp)(\?.*)?$/,
-  exclude: /(node_modules)/,
-  use: [
-    {
-      loader: "url-loader",
-      options: {
-        name: "images/[name].[ext]",
+    ]
+  },
+  {
+    test: /\.(js|jsx)$/,
+    exclude: /node_modules/,
+    use: ['babel-loader'],
+  },
+  {
+    test: /\.(png|jpe?g|gif|webp)(\?.*)?$/,
+    exclude: /(node_modules)/,
+    use: [
+      {
+        loader: 'url-loader',
+        options: {
+          name: 'images/[name].[ext]',
+        },
       },
-    },
-  ]}, {
-  test: /\.(woff2?|eot|ttf|otf)(\?.*)?$/i,
-  use: [
-    {
-      loader: "url-loader",
-      options: {
-        name: "fonts/[name].[ext]"
+    ]
+  },
+  {
+    test: /\.(woff2?|eot|ttf|otf)(\?.*)?$/i,
+    use: [
+      {
+        loader: 'url-loader',
+        options: {
+          name: 'fonts/[name].[ext]'
+        },
       },
-    },
-  ]}, {
-  test: /\.css$|\.scss$/,
-  use: [isProdMode() ? MiniCssExtractPlugin.loader : 'style-loader', {
-    loader: "css-loader",
-    options: {
-      modules: {
-        auto: /\.module\.\w+$/,
-        getLocalIdent: defineGetLocalIdent()
+    ]
+  },
+  {
+    test: /\.css$|\.scss$/,
+    use: [
+      isProdMode() ? MiniCssExtractPlugin.loader : 'style-loader',
+      {
+        loader: 'css-loader',
+        options: {
+          modules: {
+            auto: /\.module\.\w+$/,
+            getLocalIdent: defineGetLocalIdent()
+          },
+        },
       },
-    },
-  }, {
-    loader: "sass-loader",
-    options: {
-      additionalData: '@import "variables";',
-      sassOptions: {
-        includePaths: [path.resolve(__dirname, "src/styles")],
+      {
+        loader: 'sass-loader',
+        options: {
+          additionalData: '@import "variables";',
+          sassOptions: {
+            includePaths: [path.resolve(__dirname, 'src/styles')],
+          },
+        },
+
       },
-    },
-  }, 'postcss-loader']
-}];
+      'postcss-loader'
+    ]
+  }
+];
 
 /** @type {import('webpack').ModuleOptions} */
-const module = {
+const moduleWebpack = {
   rules
 };
 
-
 /** @type {import('webpack').Configuration} */
 const webpackGeneralConfig = {
-  entry: path.resolve(srcDirPath, 'root.(js|ts)'),
-  output, resolve, plugins, stats, optimization, module
+  entry: fs.existsSync(path.resolve(srcDirPath, 'main.ts')) ? path.resolve(srcDirPath, 'main.ts') : path.resolve(srcDirPath, 'main.js'),
+  output, resolve, plugins, stats, optimization,
+  module: moduleWebpack
 };
 
 module.exports = webpackGeneralConfig;

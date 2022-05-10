@@ -5,7 +5,7 @@ module.exports = {
     "@babel/preset-env",
   ],
   plugins: [
-    "@babel/plugin-proposal-class-properties", // transforms static class properties as well as properties declared with the property initializer syntax
+    "@babel/plugin-proposal-class-properties",
     "jsx-classnames-advanced",
   ],
 };
