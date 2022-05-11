@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable import/no-extraneous-dependencies */
 const webpackGeneral = require('./webpack/webpack.general');
-const {isProdMode} = require('./common.helper');
+const {isProdMode} = require('./webpack/common.helper');
 const {defineDevServer} = require('./webpack/webpack.server');
 
 let webpack = null;

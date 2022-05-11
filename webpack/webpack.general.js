@@ -1,14 +1,16 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable import/no-extraneous-dependencies */
 const path = require('path');
 const fs = require('fs');
 const minifyCssClassNames = require("mini-css-class-name/css-loader");
-const {webpackFilename, resolveExtensions, isDevMode, isProdMode} = require('../common.helper');
+const {webpackFilename, resolveExtensions, isDevMode, isProdMode, insertBefore} = require('./common.helper');
 const {TypescriptConfigPathsPlugin, WatchIgnorePlugin, DefinePlugin, CaseSensitivePathsPlugin,
-  HtmlWebpackPlugin, CleanWebpackPlugin, CopyWebpackPlugin, ProgressPlugin, MiniCssExtractPlugin
+  HtmlWebpackPlugin, CleanWebpackPlugin, CopyWebpackPlugin, ProgressPlugin, MiniCssExtractPlugin, VueLoaderPlugin
 } = require('./webpack.plugins');
 
-const srcDirPath = path.resolve(__dirname, '../../src/');
-const distDirPath = path.resolve(__dirname, '../../dist/');
-const assetsDirPath = path.resolve(__dirname, '../../public');
+const srcDirPath = path.resolve(__dirname, '../src/');
+const distDirPath = path.resolve(__dirname, '../dist/');
+const assetsDirPath = path.resolve(__dirname, '../public');
 
 function defineGetLocalIdent() {
   if (isProdMode()) return minifyCssClassNames({
@@ -46,7 +48,7 @@ const resolve = {
   extensions: resolveExtensions('js', 'jsx', 'ts', 'tsx'),
   plugins: [
     new TypescriptConfigPathsPlugin({
-      configFile: path.resolve(__dirname, '../tsconfig.json')
+      configFile: path.resolve(__dirname, '..//tsconfig.json')
     })
   ]
 };
@@ -183,6 +185,16 @@ const rules = [
 const moduleWebpack = {
   rules
 };
+
+// eslint-disable-next-line no-restricted-syntax
+for (const file of [...fs.readdirSync(srcDirPath)]) {
+  if (file.indexOf('.vue') > -1) {
+    resolve.extensions.push('.vue');
+    rules.push({ test: /\.vue$/, loader: 'vue-loader' });
+    insertBefore(VueLoaderPlugin, plugins, (pl) => pl instanceof CleanWebpackPlugin);
+    break;
+  }
+}
 
 /** @type {import('webpack').Configuration} */
 const webpackGeneralConfig = {

@@ -8,7 +8,7 @@
     },
     "jsx": "preserve",
     "allowJs": true,
-    "outDir": "",
+    "outDir": "tsconfig",
     "noEmit": true,
     "esModuleInterop": true,
     "target": "ESNext",
