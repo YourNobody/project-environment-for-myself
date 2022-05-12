@@ -3,23 +3,33 @@
     "baseUrl": "./",
     "paths": {
       "@/*": ["src/*"],
+      "@Components": ["src/components/"],
+      "@Components/*": ["src/components/*"],
       "@images/*": ["src/assets/images/*"],
       "@fonts/*": ["src/assets/fonts/*"]
     },
     "jsx": "preserve",
-    "allowJs": true,
     "outDir": "tsconfig",
     "noEmit": true,
-    "esModuleInterop": true,
     "target": "ESNext",
     "module": "ESNext",
+    "allowSyntheticDefaultImports": true,
     "moduleResolution": "node",
     "strict": true,
+    "esModuleInterop": true,
+    "noImplicitAny": false,
     "noFallthroughCasesInSwitch": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
+    "emitDecoratorMetadata": true,
+    "skipLibCheck": true
   },
+  "include": [
+    "extend.d.ts",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+  ],
   "exclude": ["node_modules", "dist", "build", ".vscode", ".idea"]
 }

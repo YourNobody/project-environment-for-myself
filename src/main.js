@@ -1,6 +1,6 @@
-import {App} from './App';
+import {createApp} from 'vue';
+import App from '@/App.vue';
 
-// const app = new App();
-const req_req = app.start();
+const app = createApp(App);
 
-console.log(req_req);
+app.mount('#app');

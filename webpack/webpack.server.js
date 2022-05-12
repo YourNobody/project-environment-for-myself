@@ -25,7 +25,8 @@ const extendingWebpackConfig = {
 			'/': {
 				target: packageJson.proxy || 'http://localhost:7777',
 				bypass(req, res, proxyOptions) {
-					if (low(req.originalUrl).indexOf('favicon.ico') > -1) {
+					const { originalUrl: orgUrl } = req;
+					if (low(orgUrl).indexOf('favicon.ico') > -1 || low(orgUrl).indexOf('hot-update.json') > -1) {
 						return req.originalUrl;
 					}
 					if (req.headers.accept.indexOf('text/html') !== -1) {

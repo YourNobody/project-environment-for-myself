@@ -7,13 +7,18 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-const VueLoaderPlugin = require('vue-loader');
 
 const {WatchIgnorePlugin, DefinePlugin, ProgressPlugin} = webpack;
 
+const loadVuePlugin = () => {
+  const { VueLoaderPlugin } = require('vue-loader');
+  return VueLoaderPlugin;
+};
+
 module.exports = {
-  TypescriptConfigPathsPlugin, VueLoaderPlugin,
+  TypescriptConfigPathsPlugin,
   WatchIgnorePlugin, DefinePlugin, ProgressPlugin,
   CaseSensitivePathsPlugin, HtmlWebpackPlugin,
-  MiniCssExtractPlugin, CleanWebpackPlugin, CopyWebpackPlugin
+  MiniCssExtractPlugin, CleanWebpackPlugin, CopyWebpackPlugin,
+  loadVuePlugin
 };

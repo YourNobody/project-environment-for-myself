@@ -5,7 +5,8 @@ const fs = require('fs');
 const minifyCssClassNames = require("mini-css-class-name/css-loader");
 const {webpackFilename, resolveExtensions, isDevMode, isProdMode, insertBefore} = require('./common.helper');
 const {TypescriptConfigPathsPlugin, WatchIgnorePlugin, DefinePlugin, CaseSensitivePathsPlugin,
-  HtmlWebpackPlugin, CleanWebpackPlugin, CopyWebpackPlugin, ProgressPlugin, MiniCssExtractPlugin, VueLoaderPlugin
+  HtmlWebpackPlugin, CleanWebpackPlugin, CopyWebpackPlugin, ProgressPlugin, MiniCssExtractPlugin,
+  loadVuePlugin
 } = require('./webpack.plugins');
 
 const srcDirPath = path.resolve(__dirname, '../src/');
@@ -45,12 +46,18 @@ const output = {
 
 /** @type {import('webpack').ResolveOptionsWebpackOptions} */
 const resolve = {
-  extensions: resolveExtensions('js', 'jsx', 'ts', 'tsx'),
+  extensions: resolveExtensions('js', 'jsx', 'ts', 'tsx', 'vue'),
   plugins: [
     new TypescriptConfigPathsPlugin({
-      configFile: path.resolve(__dirname, '..//tsconfig.json')
+      baseUrl: '../',
+      configFile: './tsconfig.json',
+      extensions: resolveExtensions('js', 'jsx', 'ts', 'tsx', 'vue')
     })
-  ]
+  ],
+  alias: {
+    '@': path.resolve(srcDirPath, '.'),
+    '@Components': path.resolve(srcDirPath, 'components')
+  }
 };
 
 /** @type {import('webpack').Plugin[]} */
@@ -169,7 +176,6 @@ const rules = [
       {
         loader: 'sass-loader',
         options: {
-          additionalData: '@import "variables";',
           sassOptions: {
             includePaths: [path.resolve(__dirname, 'src/styles')],
           },
@@ -177,6 +183,12 @@ const rules = [
 
       },
       'postcss-loader'
+    ]
+  },
+  {
+    test: /\.vue$/,
+    use: [
+      'vue-loader'
     ]
   }
 ];
@@ -186,19 +198,43 @@ const moduleWebpack = {
   rules
 };
 
-// eslint-disable-next-line no-restricted-syntax
-for (const file of [...fs.readdirSync(srcDirPath)]) {
-  if (file.indexOf('.vue') > -1) {
-    resolve.extensions.push('.vue');
-    rules.push({ test: /\.vue$/, loader: 'vue-loader' });
-    insertBefore(VueLoaderPlugin, plugins, (pl) => pl instanceof CleanWebpackPlugin);
-    break;
+const addVueLogic = () => {
+  const vueRules = [
+    {
+      test: /\.vue$/,
+      use: [
+        'vue-loader'
+      ]
+    }
+  ];
+
+  rules.concat(vueRules);
+
+  insertBefore(new (loadVuePlugin()), plugins, (pl) => pl instanceof CleanWebpackPlugin);
+};
+
+const checkIfVueIsUsingBy = () => {
+  for (const file of [...fs.readdirSync(srcDirPath)]) {
+    if (file.indexOf('.vue') > -1) {
+      return addVueLogic();
+    }
   }
-}
+};
+
+const checkEntryFile = (naming, extensions) => {
+  for (let i = 0; i < extensions.length; i++) {
+    if (fs.existsSync(path.resolve(srcDirPath, `${naming}.${extensions[i]}`))) {
+      return path.resolve(srcDirPath, `${naming}.${extensions[i]}`);
+    }
+  }
+  return `${naming}.js`;
+};
+
+checkIfVueIsUsingBy();
 
 /** @type {import('webpack').Configuration} */
 const webpackGeneralConfig = {
-  entry: fs.existsSync(path.resolve(srcDirPath, 'main.ts')) ? path.resolve(srcDirPath, 'main.ts') : path.resolve(srcDirPath, 'main.js'),
+  entry: checkEntryFile('main', ['js', 'jsx', 'ts', 'tsx']),
   output, resolve, plugins, stats, optimization,
   module: moduleWebpack
 };
